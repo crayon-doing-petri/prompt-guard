@@ -1,7 +1,13 @@
 <p align="center">
-  <img src="https://img.shields.io/badge/version-2.2.0-blue.svg" alt="Version">
-  <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License">
+  <img src="https://img.shields.io/badge/🚀_version-2.2.0-blue.svg?style=for-the-badge" alt="Version">
+  <img src="https://img.shields.io/badge/📅_updated-2025--01--30-brightgreen.svg?style=for-the-badge" alt="Updated">
+  <img src="https://img.shields.io/badge/license-MIT-green.svg?style=for-the-badge" alt="License">
+</p>
+
+<p align="center">
   <img src="https://img.shields.io/badge/languages-EN%20|%20KO%20|%20JA%20|%20ZH-orange.svg" alt="Languages">
+  <img src="https://img.shields.io/badge/python-3.8+-blue.svg" alt="Python">
+  <img src="https://img.shields.io/badge/clawdbot-compatible-purple.svg" alt="Clawdbot">
 </p>
 
 <h1 align="center">🛡️ Prompt Guard</h1>
@@ -13,6 +19,10 @@
 <p align="center">
   Protect your AI agent from manipulation attacks with multi-language detection,<br>
   severity scoring, secret protection, and automated security auditing.
+</p>
+
+<p align="center">
+  <code>📦 Latest: v2.2.0 | 📅 Updated: January 30, 2025</code>
 </p>
 
 ---
@@ -453,6 +463,32 @@ Contributions are welcome! Feel free to:
 - Support additional languages
 - Improve documentation
 - Report false positives/negatives
+
+---
+
+## 📋 Changelog
+
+### v2.2.0 (January 30, 2025) — Latest
+- ✨ **Secret Protection**: Blocks token/config/credential requests in 4 languages
+- 🔧 **Security Audit Script**: System configuration checker with auto-fix
+- 📚 **Infrastructure Guide**: SSH, gateway, browser security best practices
+- 🛡️ **Enhanced Patterns**: 50+ attack patterns across EN/KO/JA/ZH
+
+### v2.1.0 (January 30, 2025)
+- 📝 Full English documentation
+- ⚙️ Improved configuration examples
+
+### v2.0.0 (January 30, 2025)
+- 🌍 Multi-language support (Korean, Japanese, Chinese)
+- 📊 Severity scoring system (5 levels)
+- 🔍 Homoglyph and Base64 detection
+- 📈 Rate limiting per user
+- 📝 Security log analyzer
+
+### v1.0.0 (January 30, 2025)
+- 🎉 Initial release
+- 🇺🇸 English pattern detection
+- 🔐 Basic injection protection
 
 ---
 
