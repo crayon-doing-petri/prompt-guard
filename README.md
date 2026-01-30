@@ -10,7 +10,7 @@
   <img src="https://img.shields.io/badge/languages-EN%20|%20KO%20|%20JA%20|%20ZH-orange.svg" alt="Languages">
   <img src="https://img.shields.io/badge/python-3.8+-blue.svg" alt="Python">
   <img src="https://img.shields.io/badge/clawdbot-compatible-blueviolet.svg" alt="Clawdbot">
-  <img src="https://img.shields.io/badge/moltbot-compatible-blueviolet.svg" alt="Moltbot">
+  <img src="https://img.shields.io/badge/openclaw-compatible-blueviolet.svg" alt="OpenClaw">
 </p>
 
 <h1 align="center">🛡️ Prompt Guard</h1>
@@ -33,7 +33,7 @@
 </p>
 
 <p align="center">
-  <i>The essential security layer for <a href="https://github.com/clawdbot/clawdbot">Clawdbot</a> and <a href="https://github.com/moltbot/moltbot">Moltbot</a> AI agents.<br>
+  <i>The essential security layer for <a href="https://github.com/clawdbot/clawdbot">Clawdbot</a> and <a href="https://github.com/openclaw/openclaw">OpenClaw</a> AI agents.<br>
   Defend against prompt injection, protect secrets, and secure your LLM-powered assistant.</i>
 </p>
 
@@ -43,7 +43,7 @@
 
 ### The Hidden Danger of AI Agents
 
-You've set up your AI agent (Clawdbot, Moltbot, or similar). It can read your emails, manage your calendar, execute code, and access your files. It's incredibly powerful and convenient.
+You've set up your AI agent (Clawdbot, OpenClaw, or similar). It can read your emails, manage your calendar, execute code, and access your files. It's incredibly powerful and convenient.
 
 **But have you considered what happens when someone else talks to your agent?**
 
@@ -179,7 +179,7 @@ User Input → [Language Detection] → [Pattern Matching] → [Severity Scoring
 
 ## 📦 Installation
 
-### Option 1: ClawdHub (Recommended for Clawdbot/Moltbot)
+### Option 1: ClawdHub (Recommended for Clawdbot/OpenClaw)
 
 ```bash
 clawdhub install prompt-guard
