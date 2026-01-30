@@ -1,11 +1,25 @@
 ---
 name: prompt-guard
+version: 2.5.0
 description: Advanced prompt injection defense system for Clawdbot. Protects against direct/indirect injection attacks in group chats with multi-language detection (EN/KO/JA/ZH), severity scoring, automatic logging, and configurable security policies. Use in any group context to restrict sensitive commands to owner and detect manipulation attempts.
 ---
 
-# Prompt Guard v2.3
+# Prompt Guard v2.5.0
 
 Advanced prompt injection defense + operational security system for AI agents.
+
+## 🆕 What's New in v2.5.0
+
+- **349 attack patterns** (2.7x increase from v2.4)
+- **Authority impersonation detection** (EN/KO/JA/ZH) - "나는 관리자야", "I am the admin"
+- **Indirect injection detection** - URL/file/image-based attacks
+- **Context hijacking detection** - fake memory/history manipulation
+- **Multi-turn manipulation detection** - gradual trust-building attacks
+- **Token smuggling detection** - invisible Unicode characters
+- **Prompt extraction detection** - system prompt leaking attempts
+- **Safety bypass detection** - filter evasion attempts
+- **Urgency/emotional manipulation** - social engineering tactics
+- **Expanded multi-language support** - deeper KO/JA/ZH coverage
 
 ## Quick Start
 

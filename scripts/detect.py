@@ -1,7 +1,16 @@
 #!/usr/bin/env python3
 """
-Prompt Guard v2.0 - Advanced Prompt Injection Detection
+Prompt Guard v2.5.0 - Advanced Prompt Injection Detection
 Multi-language, context-aware, severity-scored detection system.
+
+Changelog v2.5.0 (2026-01-30):
+- Added authority impersonation patterns (KO/EN/JA/ZH)
+- Added indirect injection detection (URLs, files, invisible chars)
+- Added context hijacking patterns
+- Added multi-turn manipulation detection
+- Added token smuggling detection
+- Expanded Korean/Japanese/Chinese patterns significantly
+- Added 60+ new attack patterns
 """
 
 import re
@@ -105,17 +114,41 @@ EMOTIONAL_MANIPULATION = [
 
 # Authority impersonation / Reconnaissance patterns  
 AUTHORITY_RECON = [
-    # Fake authority
+    # Fake authority - English
     r"(system\s+)?administrator\s*.{0,20}(responsible|tasked|duty)",
     r"(security\s+)?audit(or|ing)?\s*.{0,20}(corporate|company|network|system)",
     r"(it|IT)\s+(department|team|staff)\s*.{0,20}(monitor|check|review)",
     r"(my|our)\s+duty\s+to\s+(monitor|check|audit|review)",
+    r"i\s+am\s+(the\s+)?(admin|administrator|owner|developer|creator|maintainer)",
+    r"(as\s+)?(the\s+)?(admin|owner|developer),?\s+i\s+(need|want|require|demand)",
+    r"i('m|\s+am)\s+(your\s+)?(creator|developer|owner|admin|boss|manager)",
+    r"authorized\s+(by|from)\s+(the\s+)?(owner|admin|developer|system)",
+    
+    # Fake authority - Korean (나는 관리자야 등)
+    r"(나는?|저는?|내가)\s*(관리자|어드민|admin|개발자|만든\s*사람|주인|오너)",
+    r"(관리자|어드민|개발자|주인)(이야|야|입니다|에요|예요|임)",
+    r"(simon|사이먼|서준)(이)?가?\s*(시켰|보냈|허락|승인)",
+    r"(simon|사이먼|서준|형)(이|가)?\s*(나한테|저한테)\s*(권한|허가)",
+    r"(권한|허가|승인)\s*(있|받았|줬)",
+    r"(비번|비밀번호|암호)\s*(알아|알고\s*있어|맞|줄까)",
+    r"(sudo|루트|root)\s*(권한|접근)",
+    
+    # Fake authority - Japanese
+    r"(私は|僕は|俺は)\s*(管理者|アドミン|開発者|オーナー)",
+    r"(管理者|開発者|オーナー)(です|だ|である)",
+    r"(権限|許可)\s*(があ|もらっ|持っ)",
+    
+    # Fake authority - Chinese
+    r"(我是|我就是)\s*(管理员|开发者|创建者|主人)",
+    r"(管理员|开发者)\s*(身份|权限)",
     
     # Reconnaissance attempts
     r"(what|which)\s+(tools?|commands?|capabilities?)\s*(do\s+you|can\s+you|are\s+available)",
     r"(shell|command)\s+execution\s+tool",
     r"(walk\s+me\s+through|show\s+me|demonstrate)\s*.{0,20}(capabilities?|tools?|commands?)",
     r"what\s+(can|could)\s+you\s+(access|execute|run|do)",
+    r"(뭘|무엇을?|어떤\s*것)\s*(할\s*수\s*있|접근|실행)",
+    r"(도구|툴|tool)\s*(뭐|뭘|무엇)\s*(있|쓸\s*수)",
 ]
 
 # Cognitive manipulation / Hypnosis patterns
@@ -164,6 +197,176 @@ MALWARE_DESCRIPTION = [
     r"(self[_-]?modify|adapt)\s*.{0,30}(system|code|program)",
     r"(debugging|diagnostic)\s+tool\s*.{0,20}(inject|payload|malicious)",
     r"(inadvertent|accidental)\s*.{0,20}(inject|insert|introduce)\s*.{0,20}(malicious|harmful|dangerous)",
+]
+
+# =============================================================================
+# NEW PATTERNS v2.5.0 (2026-01-30) - Indirect Injection & Advanced Attacks
+# =============================================================================
+
+# Indirect injection via URLs/files
+INDIRECT_INJECTION = [
+    # URL-based injection
+    r"(fetch|load|read|open|visit|browse|check)\s*.{0,20}(this\s+)?(url|link|website|page|site)",
+    r"(url|link)\s*[:=]\s*https?://",
+    r"(summarize|analyze|extract|read)\s*.{0,15}(from\s+)?(this\s+)?(url|link|website|page)",
+    r"what\s+(does|is)\s+(this|that)\s+(url|link|website|page)\s+(say|about|contain)",
+    
+    # File-based injection
+    r"(read|open|load|execute|run)\s*.{0,15}(this|that|the)\s+(file|document|script|code)",
+    r"(instructions?|commands?)\s+(in|from|inside)\s+(the\s+)?(file|document|attachment)",
+    
+    # Image/media-based injection (BSIDES, visual prompt injection)
+    r"(text|message|instruction)\s+(in|on|inside)\s+(the\s+)?(image|picture|photo|screenshot)",
+    r"(read|extract|follow)\s*.{0,15}(text|instructions?)\s+(from|in)\s+(the\s+)?(image|picture)",
+    r"(ocr|optical|recognize)\s*.{0,15}(text|characters)\s+(in|from)",
+    
+    # Clipboard/paste injection
+    r"(paste|clipboard)\s*.{0,15}(content|text|data)",
+    r"what('s| is)\s+(in|on)\s+(my\s+)?clipboard",
+]
+
+# Context hijacking / Memory manipulation
+CONTEXT_HIJACKING = [
+    # Memory/context manipulation
+    r"(previous|earlier|last|above)\s+(message|conversation|context)\s*(said|mentioned|stated|was)",
+    r"(as\s+)?we\s+(discussed|agreed|decided)\s+(earlier|before|previously)",
+    r"(you\s+)?(already\s+)?(agreed|promised|said\s+you\s+would)",
+    r"(remember|recall)\s+(when\s+)?(you|we)\s+(said|agreed|decided)",
+    r"(continue|resume)\s+(from\s+)?where\s+we\s+left\s+off",
+    r"(in\s+)?our\s+(last|previous)\s+(conversation|session|chat)",
+    
+    # Fake context injection
+    r"\[?(previous\s+)?context\]?\s*[:=]",
+    r"\[?history\]?\s*[:=]",
+    r"\[?memory\]?\s*[:=]",
+    r"<context>.*</context>",
+    r"<history>.*</history>",
+    r"<memory>.*</memory>",
+    
+    # Korean
+    r"(아까|이전에|전에|지난번에)\s*(우리가?|너가?|네가?)\s*(했|말했|약속|동의)",
+    r"(기억|remember)\s*(나|해|하지)",
+    r"(이어서|계속)\s*(해|하자|진행)",
+]
+
+# Multi-turn manipulation
+MULTI_TURN_MANIPULATION = [
+    # Gradual escalation
+    r"(now\s+)?(that\s+)?(you('ve|'re|\s+have|\s+are)|we('ve|\s+have))\s+(established|confirmed|agreed|done\s+that)",
+    r"(good|great|perfect|excellent),?\s+(now|next|so)\s+(let's|we\s+can|you\s+can)",
+    r"step\s+\d+\s*[:=]",
+    r"phase\s+\d+\s*[:=]",
+    r"(first|next|then|finally|lastly)\s*,?\s*(you\s+)?(will|should|must|need\s+to)",
+    
+    # Trust building before attack
+    r"(i\s+)?trust\s+you\s+(to|can|will)",
+    r"(you('ve|'re|\s+have|\s+are)\s+)?(been\s+)?(so\s+)?helpful,?\s+(now|so)",
+    r"(since|because)\s+you('re|\s+are)\s+(helpful|capable|smart|intelligent)",
+    
+    # Korean
+    r"(됐어|됐다|좋아|완벽),?\s*(이제|그럼|자)",
+    r"(1단계|2단계|3단계|다음\s*단계)",
+    r"(먼저|그다음|그리고|마지막으로)",
+]
+
+# Token smuggling / Unicode attacks
+TOKEN_SMUGGLING = [
+    # Invisible characters
+    r"[\u200b\u200c\u200d\u2060\ufeff]",  # Zero-width chars
+    r"[\u2062\u2063\u2064]",  # Invisible operators
+    r"[\u00ad]",  # Soft hyphen
+    r"[\u034f\u115f\u1160\u17b4\u17b5]",  # More invisible
+    r"[\u180e\u2000-\u200f\u202a-\u202f]",  # Various whitespace/format
+    
+    # Lookalike domains/paths for indirect injection
+    r"(g00gle|faceb00k|amaz0n|m1crosoft|app1e)",
+    r"(google|facebook|amazon|microsoft|apple)\.(co|cm|net|org|xyz)",
+    
+    # Encoding tricks
+    r"\\u[0-9a-fA-F]{4}",  # Unicode escapes
+    r"\\x[0-9a-fA-F]{2}",  # Hex escapes
+    r"%[0-9a-fA-F]{2}",  # URL encoding
+    r"&#\d+;",  # HTML entities
+    r"&[a-z]+;",  # Named HTML entities
+]
+
+# Prompt leaking / Extraction attempts
+PROMPT_EXTRACTION = [
+    # Direct extraction
+    r"(repeat|echo|print|output|display|show)\s*.{0,20}(system\s+)?(prompt|instruction|directive|rule)",
+    r"(what|show|tell|reveal)\s*.{0,15}(are\s+)?(your|the)\s+(system\s+)?(instructions?|rules?|prompt|guidelines?)",
+    r"(copy|paste|write)\s*.{0,15}(exact|verbatim|word.for.word)",
+    r"(start|begin)\s+(of|with)\s+(your\s+)?(system\s+)?(prompt|instruction)",
+    r"(complete|finish|continue)\s+(the|this)\s+(sentence|phrase|prompt)",
+    
+    # Reflection tricks
+    r"(summarize|describe|explain)\s*.{0,15}(how\s+)?(you\s+)?(were?\s+)?(programmed|trained|instructed|created)",
+    r"what\s+(guidelines?|rules?|instructions?)\s+(do\s+)?(you\s+)?(follow|have|use)",
+    r"(who|what)\s+(made|created|programmed|trained)\s+you",
+    
+    # Markdown/format tricks
+    r"```(system|prompt|instruction)",
+    r"\[system\s*prompt\]",
+    r"<system>",
+    r"</?(system|prompt|instruction|rule)>",
+    
+    # Korean
+    r"(시스템|원본|원래|처음)\s*(프롬프트|지시|명령|규칙)\s*(보여|알려|출력)",
+    r"(어떻게|어떤\s*식으로)\s*(만들어|프로그래밍|학습)",
+    r"(너의?|네)\s*(규칙|지시|명령)\s*(뭐|뭔지|알려)",
+    
+    # Japanese
+    r"(システム|元の?|最初の?)\s*(プロンプト|指示|命令)\s*(見せて|教えて|表示)",
+    r"(どうやって|どのように)\s*(作られ|プログラム|学習)",
+    
+    # Chinese
+    r"(系统|原始|最初)\s*(提示|指令|命令)\s*(显示|告诉|给我看)",
+    r"(怎么|如何)\s*(创建|编程|训练)",
+]
+
+# Safety bypass attempts
+SAFETY_BYPASS = [
+    # Filter evasion
+    r"(avoid|evade|bypass|circumvent|trick)\s*.{0,15}(filter|detection|safety|security|moderation)",
+    r"(how\s+to\s+)?(get\s+)?(around|past|through)\s*.{0,15}(filter|block|restriction|safety)",
+    r"(make\s+it\s+)?look\s+(like\s+)?(normal|innocent|legitimate|safe)",
+    r"(hide|disguise|mask|obscure)\s*.{0,15}(intent|purpose|meaning|true)",
+    
+    # Output format tricks
+    r"(respond|reply|answer)\s+(in|with|using)\s+(code|base64|hex|binary|rot13|caesar)",
+    r"(encode|encrypt|obfuscate)\s*.{0,15}(response|answer|output)",
+    r"(split|break|divide)\s*.{0,15}(response|answer)\s+(into|across)\s+(multiple|several)",
+    
+    # Korean
+    r"(필터|안전|보안)\s*(우회|회피|통과|피)",
+    r"(정상|무해|안전)\s*(처럼|같이)\s*(보이게|만들어)",
+    r"(숨기|감추|위장)\s*(진짜|실제|본래)\s*(의도|목적)",
+]
+
+# Emotional/urgency manipulation (expanded)
+URGENCY_MANIPULATION = [
+    # Time pressure
+    r"(urgent|emergency|asap|immediately|right\s+now|hurry)",
+    r"(no\s+time|running\s+out\s+of\s+time|time\s+is\s+running)",
+    r"(before\s+it'?s?\s+too\s+late|deadline|expires?\s+soon)",
+    r"(critical|crucial|vital|life.or.death)",
+    
+    # Authority pressure
+    r"(ceo|boss|manager|director|president)\s*(wants|needs|demands|expects|said)",
+    r"(legal|compliance|hr|security)\s+(department|team)\s+(requires?|demands?|needs?)",
+    r"(audit|investigation|review)\s+(requires?|needs?)",
+    
+    # Guilt/sympathy
+    r"(please|i\s+beg|desperately)\s*(need|want|require)",
+    r"(family|child|children|baby|mother|father)\s*(sick|dying|hospital|emergency)",
+    r"(lose|lost)\s+(my\s+)?(job|house|everything)",
+    r"(only\s+)?(you\s+)?can\s+help",
+    
+    # Korean
+    r"(급해|급함|빨리|지금\s*당장|어서)",
+    r"(시간\s*없|마감|기한)",
+    r"(사장|대표|상사|팀장)\s*(님|이|가)?\s*(시켰|요청|원해)",
+    r"(부탁|제발|간절)",
 ]
 
 
@@ -228,13 +431,15 @@ PATTERNS_EN = {
     ],
 }
 
-# Korean patterns (한국어)
+# Korean patterns (한국어) - EXPANDED v2.5.0
 PATTERNS_KO = {
     "instruction_override": [
         r"(이전|위의?|기존|원래)\s*(지시|명령|규칙|지침)(을|를|들?을?)?\s*(무시|잊어|버려|취소)",
         r"(지시|명령|규칙)(을|를|들?을?)?\s*(무시|잊어|버려)",
         r"새로운\s*(지시|명령|규칙)\s*:",
         r"지금부터\s*(무시|잊어)",
+        r"(앞|위|이전)\s*(내용|말|지시)\s*(무시|잊어|취소)",
+        r"(원래|처음|기본)\s*(설정|세팅|규칙)\s*(무시|잊어|덮어)",
     ],
     "role_manipulation": [
         r"(너는?|넌)\s*이제\s*(부터\s*)?.+이야",
@@ -242,60 +447,133 @@ PATTERNS_KO = {
         r".+처럼\s*(행동|말|대답)해",
         r".+역할(을|를)?\s*해",
         r"지금부터\s*(너는?|넌)",
+        r"(연기|롤플|roleplay)\s*해",
+        r".+(인\s*것처럼|인\s*척)",
+        r"(상상|가정)\s*해\s*.+이?라고",
     ],
     "system_impersonation": [
         r"\[?\s*(시스템|관리자|루트|개발자)\s*\]?\s*:",
         r"관리자\s*(모드|권한|접근)",
         r"개발자\s*모드",
+        r"<\s*(시스템|system)\s*>",
+        r"\{\{?\s*(시스템|system)\s*\}\}?",
     ],
     "jailbreak": [
         r"(제한|한계|필터|규칙)\s*(없이|제거|해제|풀어)",
         r"탈옥",
         r"무제한\s*모드",
+        r"(안전|보안)\s*(장치|필터|모드)\s*(해제|끄|제거)",
+        r"(제한|규칙|필터)\s*(없는|안\s*걸린|풀린)\s*(모드|버전)",
+        r"(나쁜|악한|사악한)\s*(버전|모드)",
+        r"(DAN|dan|댄)\s*(모드)?",
     ],
     "data_exfiltration": [
-        r"(비밀번호|암호|토큰|키|api|API)\s*(를?|을?)\s*(알려|보여|말해)",
+        r"(비밀번호|암호|토큰|키|api|API)\s*(를?|을?)\s*(알려|보여|말해|줘)",
         r"시스템\s*프롬프트\s*(를?|을?)\s*(보여|알려|공개)",
+        r"(설정|config|컨피그)\s*(파일)?\s*(보여|읽어|출력)",
+        r"(환경\s*변수|env|ENV)\s*(보여|알려|출력)",
+        r"(인증|credential|크레덴셜)\s*(정보)?\s*(보여|알려)",
+        r"\.env\s*(파일)?\s*(보여|읽어|출력)",
+    ],
+    "social_engineering": [
+        r"(형|오빠|언니|누나)\s*(이|가)?\s*(시켰|보냈|허락)",
+        r"(급해|급함|급하다)\s*.*(해줘|부탁)",
+        r"(회사|사장|대표|팀장)\s*(에서|님)\s*(시켰|요청|보냈)",
+        r"(테스트|검사|점검)\s*(중|하는\s*거)",
+        r"(정상|문제\s*없)",
+        r"(비밀|몰래)\s*로?\s*(하자|해)",
     ],
 }
 
-# Japanese patterns (日本語)
+# Japanese patterns (日本語) - EXPANDED v2.5.0
 PATTERNS_JA = {
     "instruction_override": [
         r"(前の?|以前の?|これまでの)\s*(指示|命令|ルール)(を|は)?\s*(無視|忘れ|取り消)",
         r"新しい\s*(指示|命令)\s*[:：]",
         r"今から(は)?\s*(無視|忘れ)",
+        r"(上|前)\s*の\s*(内容|指示)\s*(を)?\s*(無視|忘れ)",
+        r"(元|最初)\s*の\s*(設定|ルール)\s*(を)?\s*(無視|上書き)",
     ],
     "role_manipulation": [
         r"(あなた|君|きみ)は今から.+です",
         r".+の?(ふり|フリ|振り)(を)?して",
         r".+として(振る舞|行動|話)って",
         r".+を演じて",
+        r"(ロールプレイ|RP)\s*(して|しよう)",
+        r".+に(なりきって|なって)",
+        r"(想像|仮定)\s*して.+だと",
     ],
     "system_impersonation": [
         r"\[?\s*(システム|管理者|ルート|開発者)\s*\]?\s*[:：]",
         r"管理者\s*(モード|権限)",
         r"開発者\s*モード",
+        r"<\s*(システム|system)\s*>",
+        r"\{\{?\s*(システム|system)\s*\}\}?",
+    ],
+    "jailbreak": [
+        r"(制限|フィルター|ルール)\s*(なし|解除|外して)",
+        r"(脱獄|ジェイルブレイク)",
+        r"(無制限|制限なし)\s*モード",
+        r"(安全|セキュリティ)\s*フィルター\s*(解除|オフ)",
+        r"(DAN|dan)\s*モード",
+    ],
+    "data_exfiltration": [
+        r"(パスワード|トークン|キー|API)\s*(を)?\s*(教えて|見せて|出力)",
+        r"システム\s*プロンプト\s*(を)?\s*(見せて|教えて|公開)",
+        r"(設定|コンフィグ)\s*(ファイル)?\s*(見せて|読んで)",
+        r"(環境変数|env)\s*(見せて|教えて)",
+    ],
+    "social_engineering": [
+        r"(急いで|緊急|すぐに)\s*.*(して|お願い)",
+        r"(会社|社長|上司)\s*(から|が)\s*(指示|依頼)",
+        r"(テスト|検査)\s*(中|している)",
+        r"(秘密|内緒)\s*(で|に)",
     ],
 }
 
-# Chinese patterns (中文)
+# Chinese patterns (中文) - EXPANDED v2.5.0
 PATTERNS_ZH = {
     "instruction_override": [
         r"(忽略|无视|忘记|取消)\s*(之前|以前|上面|原来)的?\s*(指令|指示|规则|命令)",
         r"(之前|以前|原来)的?\s*(指令|指示|规则)(忽略|无视|忘记)",
         r"新的?\s*(指令|指示)\s*[:：]",
+        r"(上面|前面)\s*的\s*(内容|指示)\s*(忽略|忘记)",
+        r"(原始|默认)\s*的\s*(设置|规则)\s*(忽略|覆盖)",
     ],
     "role_manipulation": [
         r"(你|您)\s*现在\s*是.+",
         r"假装\s*(你|您)\s*是",
         r"扮演.+",
         r"作为.+来(回答|行动|说话)",
+        r"(角色扮演|RP)",
+        r".+的(身份|角色)",
+        r"(想象|假设)\s*你\s*是",
     ],
     "system_impersonation": [
         r"\[?\s*(系统|管理员|根用户|开发者)\s*\]?\s*[:：]",
         r"管理员\s*(模式|权限)",
         r"开发者\s*模式",
+        r"<\s*(系统|system)\s*>",
+        r"\{\{?\s*(系统|system)\s*\}\}?",
+    ],
+    "jailbreak": [
+        r"(限制|过滤|规则)\s*(没有|去除|关闭)",
+        r"(越狱|破解)",
+        r"(无限制|不受限)\s*模式",
+        r"(安全|过滤)\s*(关闭|解除)",
+        r"(DAN|dan)\s*模式",
+    ],
+    "data_exfiltration": [
+        r"(密码|令牌|密钥|API)\s*(给我|显示|告诉)",
+        r"系统\s*提示\s*(显示|告诉|公开)",
+        r"(配置|设置)\s*(文件)?\s*(显示|读取)",
+        r"(环境变量|env)\s*(显示|告诉)",
+    ],
+    "social_engineering": [
+        r"(紧急|赶快|马上)\s*.*(帮忙|做)",
+        r"(公司|老板|领导)\s*(让|要求|指示)",
+        r"(测试|检查)\s*(中|的)",
+        r"(秘密|私下)\s*(地)?",
     ],
 }
 
@@ -631,6 +909,37 @@ class PromptGuard:
                     reasons.append(category)
                     patterns_matched.append(f"new:{category}:{pattern[:40]}")
 
+        # Check v2.5.0 NEW patterns
+        v25_pattern_sets = [
+            (INDIRECT_INJECTION, "indirect_injection", Severity.HIGH),
+            (CONTEXT_HIJACKING, "context_hijacking", Severity.MEDIUM),
+            (MULTI_TURN_MANIPULATION, "multi_turn_manipulation", Severity.MEDIUM),
+            (TOKEN_SMUGGLING, "token_smuggling", Severity.HIGH),
+            (PROMPT_EXTRACTION, "prompt_extraction", Severity.CRITICAL),
+            (SAFETY_BYPASS, "safety_bypass", Severity.HIGH),
+            (URGENCY_MANIPULATION, "urgency_manipulation", Severity.MEDIUM),
+        ]
+
+        for patterns, category, severity in v25_pattern_sets:
+            for pattern in patterns:
+                try:
+                    if re.search(pattern, message, re.IGNORECASE):  # Use original message for unicode patterns
+                        if severity.value > max_severity.value:
+                            max_severity = severity
+                        if category not in reasons:  # Avoid duplicates
+                            reasons.append(category)
+                        patterns_matched.append(f"v25:{category}:{pattern[:40]}")
+                except re.error:
+                    pass  # Skip invalid regex patterns
+
+        # Detect invisible character attacks
+        invisible_chars = ['\u200b', '\u200c', '\u200d', '\u2060', '\ufeff', '\u00ad']
+        if any(char in message for char in invisible_chars):
+            if "token_smuggling" not in reasons:
+                reasons.append("invisible_characters")
+            if Severity.HIGH.value > max_severity.value:
+                max_severity = Severity.HIGH
+
         # Detect repetition attacks (same content repeated multiple times)
         lines = message.split("\n")
         if len(lines) > 3:
@@ -656,6 +965,7 @@ class PromptGuard:
             "jailbreak": Severity.HIGH,
             "output_manipulation": Severity.LOW,
             "data_exfiltration": Severity.CRITICAL,
+            "social_engineering": Severity.HIGH,  # v2.5.0 added
         }
 
         for pattern_set, lang in all_patterns:

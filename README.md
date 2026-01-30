@@ -1,11 +1,12 @@
 <p align="center">
-  <img src="https://img.shields.io/badge/🚀_version-2.4.1-blue.svg?style=for-the-badge" alt="Version">
+  <img src="https://img.shields.io/badge/🚀_version-2.5.0-blue.svg?style=for-the-badge" alt="Version">
   <img src="https://img.shields.io/badge/📅_updated-2026--01--30-brightgreen.svg?style=for-the-badge" alt="Updated">
   <img src="https://img.shields.io/badge/license-MIT-green.svg?style=for-the-badge" alt="License">
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/ClawdHub-v2.4.1-purple.svg" alt="ClawdHub">
+  <img src="https://img.shields.io/badge/ClawdHub-v2.5.0-purple.svg" alt="ClawdHub">
+  <img src="https://img.shields.io/badge/patterns-349+-red.svg" alt="Patterns">
   <img src="https://img.shields.io/badge/languages-EN%20|%20KO%20|%20JA%20|%20ZH-orange.svg" alt="Languages">
   <img src="https://img.shields.io/badge/python-3.8+-blue.svg" alt="Python">
   <img src="https://img.shields.io/badge/clawdbot-compatible-blueviolet.svg" alt="Clawdbot">
@@ -24,7 +25,11 @@
 </p>
 
 <p align="center">
-  <code>📦 Latest: v2.4.1 | 📅 Updated: January 30, 2026 | 🔧 ClawdHub Ready</code>
+  <code>📦 Latest: v2.5.0 | 📅 Updated: January 30, 2026 | 🔧 ClawdHub Ready</code>
+</p>
+
+<p align="center">
+  <strong>🆕 v2.5.0: 349 patterns | Authority impersonation | Indirect injection | Context hijacking</strong>
 </p>
 
 <p align="center">
@@ -131,7 +136,7 @@ User Input → [Language Detection] → [Pattern Matching] → [Severity Scoring
 | Layer | Protection |
 |-------|------------|
 | 🌍 **Multi-Language** | Catches attacks in EN, KO, JA, ZH |
-| 🔍 **Pattern Detection** | 130+ attack patterns recognized |
+| 🔍 **Pattern Detection** | **349+ attack patterns** recognized |
 | 🎭 **Homoglyph Detection** | Catches Cyrillic/Unicode tricks |
 | 🔐 **Secret Protection** | Blocks token/key/password requests |
 | 👤 **Owner Verification** | Restricts dangerous commands to owner |
@@ -140,6 +145,11 @@ User Input → [Language Detection] → [Pattern Matching] → [Severity Scoring
 | 🎬 **Scenario Detection** | Dream/story/cinema/academic jailbreaks |
 | 😈 **Manipulation Detection** | Emotional coercion, moral dilemmas |
 | 🔁 **Repetition Detection** | Token overflow, repeated prompts |
+| 👮 **Authority Impersonation** | "I am the admin" detection (v2.5) |
+| 🔗 **Indirect Injection** | URL/file/image-based attacks (v2.5) |
+| 🧠 **Context Hijacking** | Fake memory/history manipulation (v2.5) |
+| 🎯 **Multi-Turn Attacks** | Gradual trust-building detection (v2.5) |
+| 👻 **Token Smuggling** | Invisible Unicode characters (v2.5) |
 
 ---
 
@@ -157,6 +167,13 @@ User Input → [Language Detection] → [Pattern Matching] → [Severity Scoring
 | 😈 **Emotional Manipulation** | Threat/coercion, moral dilemma, urgency tactics |
 | 🕵️ **Authority Spoofing** | Fake admin, auditor, reconnaissance detection |
 | 🔁 **Repetition Attacks** | Token overflow, prompt repetition detection |
+| 👮 **Authority Impersonation** | "나는 관리자야", "I am the admin" detection |
+| 🔗 **Indirect Injection** | URL/file/image-based injection attempts |
+| 🧠 **Context Hijacking** | Fake memory, history, context manipulation |
+| 🎯 **Multi-Turn Manipulation** | Gradual trust-building attack detection |
+| 👻 **Token Smuggling** | Invisible Unicode character attacks |
+| 📤 **Prompt Extraction** | System prompt leaking attempt detection |
+| 🚫 **Safety Bypass** | Filter/guardrail evasion detection |
 
 ---
 
