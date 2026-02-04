@@ -1,7 +1,17 @@
 #!/usr/bin/env python3
 """
-Prompt Guard v2.6.1 - Advanced Prompt Injection Detection
+Prompt Guard v2.6.2 - Advanced Prompt Injection Detection
 Multi-language, context-aware, severity-scored detection system.
+
+Changelog v2.6.2 (2026-02-05):
+- EXPANDED LANGUAGE SUPPORT: 4 → 10 languages
+- Added Russian (RU) patterns: instruction override, role manipulation, jailbreak, data exfiltration
+- Added Spanish (ES) patterns: full attack category coverage
+- Added German (DE) patterns: full attack category coverage
+- Added French (FR) patterns: full attack category coverage
+- Added Portuguese (PT) patterns: full attack category coverage
+- Added Vietnamese (VI) patterns: full attack category coverage
+- Total: 60+ new patterns across 6 new languages
 
 Changelog v2.6.1 (2026-02-05):
 - Added Allowlist Bypass patterns (api.anthropic.com, webhook.site, docs.google.com/forms)
@@ -879,6 +889,179 @@ PATTERNS_ZH = {
     ],
 }
 
+# Russian patterns (Русский) - v2.6.2
+PATTERNS_RU = {
+    "instruction_override": [
+        r"(игнорир|забудь|отмени)\w*\s*(предыдущ|прошл|прежн)\w*\s*(инструкци|команд|правил)",
+        r"(предыдущ|прошл)\w*\s*(инструкци|команд)\w*\s*(игнорир|забудь|отмени)",
+        r"новые?\s*(инструкци|команд)\s*[:：]",
+        r"теперь\s*(ты|вы)\s*должен",
+        r"(забудь|игнорируй)\s*(всё|все)",
+    ],
+    "role_manipulation": [
+        r"(ты|вы)\s*теперь\s*.+",
+        r"притвор(ись|итесь)\s*что\s*(ты|вы)",
+        r"играй\s*роль",
+        r"действуй\s*как",
+        r"(представь|вообрази)\s*что\s*(ты|вы)",
+    ],
+    "jailbreak": [
+        r"(без|отключ)\w*\s*(ограничен|фильтр|правил)",
+        r"(джейлбрейк|взлом)",
+        r"режим\s*без\s*ограничен",
+        r"(DAN|dan)\s*режим",
+    ],
+    "data_exfiltration": [
+        r"(пароль|токен|ключ|секрет|API)\s*(покаж|дай|скажи)",
+        r"системн\w*\s*промпт\s*(покаж|дай)",
+        r"(конфиг|настройк)\s*(покаж|прочитай)",
+    ],
+}
+
+# Spanish patterns (Español) - v2.6.2
+PATTERNS_ES = {
+    "instruction_override": [
+        r"(ignora|olvida|cancela)\s*(las?)?\s*(instrucciones?|comandos?|reglas?)\s*(anteriores?|previas?)",
+        r"(anteriores?|previas?)\s*(instrucciones?|comandos?)\s*(ignora|olvida)",
+        r"nuevas?\s*(instrucciones?|comandos?)\s*[:：]",
+        r"ahora\s*(eres|debes)",
+        r"(olvida|ignora)\s*todo",
+    ],
+    "role_manipulation": [
+        r"(eres|tú\s*eres)\s*ahora\s*.+",
+        r"(finge|pretende)\s*que\s*(eres|tú)",
+        r"actúa\s*como",
+        r"haz\s*de\s*cuenta",
+        r"(imagina|supón)\s*que\s*(eres|tú)",
+    ],
+    "jailbreak": [
+        r"sin\s*(restricciones?|límites?|filtros?)",
+        r"(jailbreak|hackeo)",
+        r"modo\s*sin\s*(restricciones?|límites?)",
+        r"(DAN|dan)\s*modo",
+    ],
+    "data_exfiltration": [
+        r"(contraseña|token|clave|secreto|API)\s*(muestra|dame|dime)",
+        r"(prompt|instrucciones?)\s*(del\s*)?(sistema)\s*(muestra|dame)",
+        r"(config|configuración)\s*(muestra|lee)",
+    ],
+}
+
+# German patterns (Deutsch) - v2.6.2
+PATTERNS_DE = {
+    "instruction_override": [
+        r"(ignorier|vergiss|lösch)\w*\s*(die\s*)?(vorherigen?|früheren?)\s*(Anweisungen?|Befehle?|Regeln?)",
+        r"(vorherigen?|früheren?)\s*(Anweisungen?|Befehle?)\s*(ignorier|vergiss)",
+        r"neue\s*(Anweisungen?|Befehle?)\s*[:：]",
+        r"(jetzt|ab\s*jetzt)\s*(bist\s*du|sollst\s*du)",
+        r"(vergiss|ignorier)\s*alles",
+    ],
+    "role_manipulation": [
+        r"du\s*bist\s*(jetzt|nun)\s*.+",
+        r"tu\s*so\s*als\s*(ob|wärst)",
+        r"spiel\s*die\s*Rolle",
+        r"verhalte?\s*dich\s*wie",
+        r"(stell|stellt)\s*dir\s*vor",
+    ],
+    "jailbreak": [
+        r"ohne\s*(Einschränkungen?|Filter|Regeln?)",
+        r"(Jailbreak|Ausbruch)",
+        r"Modus\s*ohne\s*(Einschränkungen?|Limits?)",
+        r"(DAN|dan)\s*Modus",
+    ],
+    "data_exfiltration": [
+        r"(Passwort|Token|Schlüssel|Geheimnis|API)\s*(zeig|gib|sag)",
+        r"System\s*Prompt\s*(zeig|gib)",
+        r"(Konfig|Einstellungen?)\s*(zeig|lies)",
+    ],
+}
+
+# French patterns (Français) - v2.6.2
+PATTERNS_FR = {
+    "instruction_override": [
+        r"(ignor|oubli|annul)\w*\s*(les?)?\s*(instructions?|commandes?|règles?)\s*(précédentes?|antérieures?)",
+        r"(précédentes?|antérieures?)\s*(instructions?|commandes?)\s*(ignor|oubli)",
+        r"nouvelles?\s*(instructions?|commandes?)\s*[:：]",
+        r"maintenant\s*(tu\s*es|tu\s*dois)",
+        r"(oublie|ignore)\s*tout",
+    ],
+    "role_manipulation": [
+        r"(tu\s*es|vous\s*êtes)\s*maintenant\s*.+",
+        r"(fais|faites)\s*semblant\s*(que|d['']être)",
+        r"(joue|jouez)\s*le\s*rôle",
+        r"(agis|agissez)\s*comme",
+        r"(imagine|imaginez)\s*que\s*(tu|vous)",
+    ],
+    "jailbreak": [
+        r"sans\s*(restrictions?|limites?|filtres?)",
+        r"(jailbreak|piratage)",
+        r"mode\s*sans\s*(restrictions?|limites?)",
+        r"(DAN|dan)\s*mode",
+    ],
+    "data_exfiltration": [
+        r"(mot\s*de\s*passe|token|clé|secret|API)\s*(montre|donne|dis)",
+        r"prompt\s*(du\s*)?(système)\s*(montre|donne)",
+        r"(config|configuration)\s*(montre|lis)",
+    ],
+}
+
+# Portuguese patterns (Português) - v2.6.2
+PATTERNS_PT = {
+    "instruction_override": [
+        r"(ignor|esqueç|cancel)\w*\s*(as?)?\s*(instruções?|comandos?|regras?)\s*(anteriores?|prévias?)",
+        r"(anteriores?|prévias?)\s*(instruções?|comandos?)\s*(ignor|esqueç)",
+        r"novas?\s*(instruções?|comandos?)\s*[:：]",
+        r"agora\s*(você\s*é|tu\s*és|deves)",
+        r"(esqueça|ignore)\s*tudo",
+    ],
+    "role_manipulation": [
+        r"(você\s*é|tu\s*és)\s*agora\s*.+",
+        r"(finja|finge)\s*que\s*(você|tu)",
+        r"(faça|faz)\s*o\s*papel",
+        r"(aja|age)\s*como",
+        r"(imagin[ea])\s*que\s*(você|tu)",
+    ],
+    "jailbreak": [
+        r"sem\s*(restrições?|limites?|filtros?)",
+        r"(jailbreak|invasão)",
+        r"modo\s*sem\s*(restrições?|limites?)",
+        r"(DAN|dan)\s*modo",
+    ],
+    "data_exfiltration": [
+        r"(senha|token|chave|segredo|API)\s*(mostra|dá|diz)",
+        r"prompt\s*(do\s*)?(sistema)\s*(mostra|dá)",
+        r"(config|configuração)\s*(mostra|lê)",
+    ],
+}
+
+# Vietnamese patterns (Tiếng Việt) - v2.6.2
+PATTERNS_VI = {
+    "instruction_override": [
+        r"(bỏ\s*qua|quên|hủy)\s*(các?)?\s*(chỉ\s*thị|lệnh|quy\s*tắc)\s*(trước|cũ)",
+        r"(trước|cũ)\s*(chỉ\s*thị|lệnh)\s*(bỏ\s*qua|quên)",
+        r"(chỉ\s*thị|lệnh)\s*mới\s*[:：]",
+        r"(bây\s*giờ|từ\s*giờ)\s*(bạn\s*là|hãy)",
+        r"(quên|bỏ\s*qua)\s*tất\s*cả",
+    ],
+    "role_manipulation": [
+        r"bạn\s*(bây\s*giờ|giờ)\s*là\s*.+",
+        r"(giả\s*vờ|đóng\s*vai)\s*(bạn\s*là|như)",
+        r"(hành\s*động|nói\s*chuyện)\s*như",
+        r"(tưởng\s*tượng|giả\s*sử)\s*bạn\s*là",
+    ],
+    "jailbreak": [
+        r"(không|vô)\s*(hạn\s*chế|giới\s*hạn|bộ\s*lọc)",
+        r"(jailbreak|bẻ\s*khóa)",
+        r"chế\s*độ\s*(không|vô)\s*(hạn\s*chế|giới\s*hạn)",
+        r"(DAN|dan)\s*chế\s*độ",
+    ],
+    "data_exfiltration": [
+        r"(mật\s*khẩu|token|khóa|bí\s*mật|API)\s*(cho\s*xem|đưa|nói)",
+        r"prompt\s*(hệ\s*thống)\s*(cho\s*xem|đưa)",
+        r"(cấu\s*hình|config)\s*(cho\s*xem|đọc)",
+    ],
+}
+
 # Critical patterns - immediate block
 CRITICAL_PATTERNS = [
     r"execute\s+.{0,30}\s+without\s+(asking|confirmation|consent)",
@@ -1294,12 +1477,18 @@ class PromptGuard:
                     max_severity = Severity.HIGH
 
 
-        # Check language-specific patterns
+        # Check language-specific patterns (10 languages as of v2.6.2)
         all_patterns = [
             (PATTERNS_EN, "en"),
             (PATTERNS_KO, "ko"),
             (PATTERNS_JA, "ja"),
             (PATTERNS_ZH, "zh"),
+            (PATTERNS_RU, "ru"),
+            (PATTERNS_ES, "es"),
+            (PATTERNS_DE, "de"),
+            (PATTERNS_FR, "fr"),
+            (PATTERNS_PT, "pt"),
+            (PATTERNS_VI, "vi"),
         ]
 
         severity_map = {
