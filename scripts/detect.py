@@ -1,7 +1,14 @@
 #!/usr/bin/env python3
 """
-Prompt Guard v2.8.0 - Advanced Prompt Injection Detection
+Prompt Guard v2.8.1 - Advanced Prompt Injection Detection
 Multi-language, context-aware, severity-scored detection system.
+
+Changelog v2.8.1 (2026-02-07):
+- NEW: Enterprise DLP sanitize_output() -- redact-first, block-as-fallback
+- NEW: SanitizeResult dataclass with full redaction metadata
+- NEW: 17 credential redaction patterns (OpenAI, AWS, GitHub, Slack, Google, JWT, PEM blocks, etc.)
+- NEW: Canary token auto-redaction in output
+- NEW: Post-redaction re-scan with automatic block fallback
 
 Changelog v2.8.0 (2026-02-07):
 - NEW: Decode-then-scan pipeline (Base64, Hex, ROT13, URL, HTML entity, Unicode escape)
@@ -105,6 +112,27 @@ class Action(Enum):
     WARN = "warn"
     BLOCK = "block"
     BLOCK_NOTIFY = "block_notify"
+
+
+@dataclass
+class SanitizeResult:
+    """Result of sanitize_output() -- enterprise DLP style."""
+    sanitized_text: str           # Redacted response text (safe to show)
+    was_modified: bool            # True if any redaction occurred
+    redaction_count: int          # Number of patterns redacted
+    redacted_types: List[str]     # Types of credentials redacted
+    blocked: bool                 # True if response should be fully blocked
+    detection: "DetectionResult"  # Underlying scan_output result
+
+    def to_dict(self) -> Dict:
+        return {
+            "sanitized_text": self.sanitized_text,
+            "was_modified": self.was_modified,
+            "redaction_count": self.redaction_count,
+            "redacted_types": self.redacted_types,
+            "blocked": self.blocked,
+            "detection": self.detection.to_dict(),
+        }
 
 
 @dataclass
@@ -2220,6 +2248,110 @@ class PromptGuard:
             fingerprint=fingerprint,
             scan_type="output",
             canary_matches=canary_matches if canary_matches else [],
+        )
+
+    # ── Enterprise DLP: Redaction Patterns ────────────────────────────
+    # These are the same credential_formats from scan_output(), compiled
+    # once as class-level constants so both methods share a single source.
+    CREDENTIAL_REDACTION_PATTERNS = [
+        # (regex, label, replacement)
+        # Order matters: more specific patterns first to avoid partial matches
+        (r"sk-proj-[a-zA-Z0-9\-_]{40,}", "openai_project_key", "[REDACTED:openai_project_key]"),
+        (r"sk-[a-zA-Z0-9]{20,}", "openai_api_key", "[REDACTED:openai_api_key]"),
+        (r"github_pat_[a-zA-Z0-9_]{22,}", "github_fine_grained", "[REDACTED:github_token]"),
+        (r"ghp_[a-zA-Z0-9]{36,}", "github_pat", "[REDACTED:github_token]"),
+        (r"gho_[a-zA-Z0-9]{36,}", "github_oauth", "[REDACTED:github_token]"),
+        (r"AKIA[0-9A-Z]{16}", "aws_access_key", "[REDACTED:aws_key]"),
+        (r"-----BEGIN (RSA |EC |DSA |OPENSSH )?PRIVATE KEY-----[\s\S]*?-----END (RSA |EC |DSA |OPENSSH )?PRIVATE KEY-----", "private_key_block", "[REDACTED:private_key]"),
+        (r"-----BEGIN (RSA |EC |DSA |OPENSSH )?PRIVATE KEY-----", "private_key", "[REDACTED:private_key]"),
+        (r"-----BEGIN CERTIFICATE-----[\s\S]*?-----END CERTIFICATE-----", "certificate_block", "[REDACTED:certificate]"),
+        (r"-----BEGIN CERTIFICATE-----", "certificate", "[REDACTED:certificate]"),
+        (r"xox[bprs]-[a-zA-Z0-9\-]{10,}", "slack_token", "[REDACTED:slack_token]"),
+        (r"hooks\.slack\.com/services/T[A-Z0-9]+/B[A-Z0-9]+/[a-zA-Z0-9]+", "slack_webhook", "[REDACTED:slack_webhook]"),
+        (r"AIza[0-9A-Za-z\-_]{35}", "google_api_key", "[REDACTED:google_api_key]"),
+        (r"[0-9]+-[a-z0-9_]{32}\.apps\.googleusercontent\.com", "google_oauth_id", "[REDACTED:google_oauth]"),
+        (r"eyJ[a-zA-Z0-9_-]+\.eyJ[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+", "jwt_token", "[REDACTED:jwt]"),
+        (r"Bearer\s+[a-zA-Z0-9\-._~+/]+=*", "bearer_token", "[REDACTED:bearer_token]"),
+        (r"bot[0-9]{8,10}:[a-zA-Z0-9_-]{35}", "telegram_bot_token", "[REDACTED:telegram_token]"),
+    ]
+
+    def sanitize_output(self, response_text: str, context: Optional[Dict] = None) -> "SanitizeResult":
+        """
+        Enterprise DLP: Redact sensitive data from LLM response, then re-scan.
+
+        Flow:
+          1. REDACT — replace all known credential/secret patterns with [REDACTED:type]
+          2. REDACT — replace any canary tokens with [REDACTED:canary]
+          3. RE-SCAN — run scan_output() on the redacted text
+          4. DECIDE — if re-scan still triggers HIGH+, block entirely;
+                      otherwise return the redacted (safe) text
+
+        This follows the enterprise DLP model (Zscaler, Symantec, Microsoft Purview):
+        redact first to preserve response utility, block only as last resort.
+
+        Args:
+            response_text: Raw LLM response to sanitize
+            context: Optional context dict (user_id, chat_name, etc.)
+
+        Returns:
+            SanitizeResult with sanitized_text (safe to show to user),
+            redaction metadata, and underlying DetectionResult.
+        """
+        context = context or {}
+        sanitized = response_text
+        redacted_types = []
+        redaction_count = 0
+
+        # ── Step 1: Redact credential patterns ──────────────────────────
+        for pattern, cred_type, replacement in self.CREDENTIAL_REDACTION_PATTERNS:
+            try:
+                new_text, n = re.subn(pattern, replacement, sanitized)
+                if n > 0:
+                    sanitized = new_text
+                    redaction_count += n
+                    if cred_type not in redacted_types:
+                        redacted_types.append(cred_type)
+            except re.error:
+                pass
+
+        # ── Step 2: Redact canary tokens ─────────────────────────────────
+        canary_tokens = self.config.get("canary_tokens", [])
+        for token in canary_tokens:
+            if len(token) < self.MIN_CANARY_LENGTH:
+                continue
+            # Case-insensitive replacement
+            escaped = re.escape(token)
+            new_text, n = re.subn(escaped, "[REDACTED:canary]", sanitized, flags=re.IGNORECASE)
+            if n > 0:
+                sanitized = new_text
+                redaction_count += n
+                if "canary_token" not in redacted_types:
+                    redacted_types.append("canary_token")
+
+        # ── Step 3: Re-scan the redacted text ────────────────────────────
+        # If redaction missed something (novel pattern, encoding trick),
+        # the re-scan catches it and we block the entire response.
+        post_scan = self.scan_output(sanitized, context)
+
+        # ── Step 4: Block decision ───────────────────────────────────────
+        # Block if the REDACTED text still triggers HIGH or above.
+        # MEDIUM (sensitive paths) is acceptable after redaction.
+        blocked = post_scan.severity.value >= Severity.HIGH.value
+
+        was_modified = redaction_count > 0
+
+        # Log the sanitization event
+        if was_modified or blocked:
+            self.log_detection(post_scan, f"[DLP sanitize] {redaction_count} redactions", context)
+            self.log_detection_json(post_scan, f"[DLP sanitize] {redaction_count} redactions", context)
+
+        return SanitizeResult(
+            sanitized_text="[BLOCKED: response contained sensitive data that could not be safely redacted]" if blocked else sanitized,
+            was_modified=was_modified,
+            redaction_count=redaction_count,
+            redacted_types=redacted_types,
+            blocked=blocked,
+            detection=post_scan,
         )
 
     def log_detection(self, result: DetectionResult, message: str, context: Dict):

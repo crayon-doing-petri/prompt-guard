@@ -102,6 +102,15 @@ Prompt Guard는 **다층 방어(Defense in Depth)** 원칙으로 설계됨. 단�
 │  • Credential format patterns (15+ key formats)                 │
 │  • Secret/sensitive path detection                              │
 └─────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────┐
+│  Layer 8: Enterprise DLP Sanitizer (NEW v2.8.1)                 │
+│  • sanitize_output() - redact-first, block-as-fallback          │
+│  • 17 credential patterns → [REDACTED:type] labels              │
+│  • Canary token auto-redaction → [REDACTED:canary]              │
+│  • Post-redaction re-scan: block if still HIGH+                 │
+│  • Returns SanitizeResult with full audit metadata              │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -228,6 +237,24 @@ def scan_output(response_text, context):  # NEW v2.8.0
     check_secret_patterns(response_text)
     check_sensitive_paths(response_text)
     return DetectionResult(scan_type="output")
+
+def sanitize_output(response_text, context):  # NEW v2.8.1
+    """Enterprise DLP: Redact-first, block-as-fallback."""
+    # Step 1: Redact 17 credential patterns → [REDACTED:type]
+    for pattern in CREDENTIAL_REDACTION_PATTERNS:
+        text = re.sub(pattern, replacement, text)
+    
+    # Step 2: Redact canary tokens → [REDACTED:canary]
+    for token in canary_tokens:
+        text = text.replace(token, "[REDACTED:canary]")
+    
+    # Step 3: Re-scan redacted text
+    post_scan = scan_output(redacted_text)
+    
+    # Step 4: Block if re-scan still HIGH+, else return redacted text
+    if post_scan.severity >= HIGH:
+        return SanitizeResult(blocked=True)
+    return SanitizeResult(sanitized_text=redacted_text, blocked=False)
 ```
 
 ---
@@ -245,9 +272,11 @@ prompt-guard/
 │   ├── detect.py          # Core detection engine (~2100 lines)
 │   │   ├── Severity       # Enum for severity levels
 │   │   ├── Action         # Enum for action types
+│   │   ├── SanitizeResult # Result dataclass for sanitize_output() (v2.8.1)
 │   │   ├── DetectionResult# Result dataclass (input + output)
 │   │   ├── PromptGuard    # Main detection class
 │   │   │   ├── analyze()           # Input scanning
+│   │   │   ├── sanitize_output()   # Enterprise DLP (v2.8.1)
 │   │   │   ├── scan_output()       # Output DLP (v2.8.0)
 │   │   │   ├── normalize()         # Homoglyphs + delimiters + spacing
 │   │   │   ├── decode_all()        # Multi-encoding decoder (v2.8.0)

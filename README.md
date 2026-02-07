@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://img.shields.io/badge/🚀_version-2.8.0-blue.svg?style=for-the-badge" alt="Version">
+  <img src="https://img.shields.io/badge/🚀_version-2.8.1-blue.svg?style=for-the-badge" alt="Version">
   <img src="https://img.shields.io/badge/📅_updated-2026--02--07-brightgreen.svg?style=for-the-badge" alt="Updated">
   <img src="https://img.shields.io/badge/license-MIT-green.svg?style=for-the-badge" alt="License">
 </p>
@@ -61,6 +61,7 @@ Without protection, your agent might comply. **Prompt Guard blocks this.**
 | 🎭 **Obfuscation Detection** | Homoglyphs, Base64, Hex, ROT13, URL, HTML entities, Unicode |
 | 🐝 **HiveFence Network** | Collective threat intelligence |
 | 🔓 **Output DLP** | Scan LLM responses for credential leaks (15+ key formats) |
+| 🛡️ **Enterprise DLP** | Redact-first, block-as-fallback response sanitization |
 | 🕵️ **Canary Tokens** | Detect system prompt extraction |
 | 📝 **JSONL Logging** | SIEM-compatible logging with hash chain tamper detection |
 | 🧩 **Token Smuggling Defense** | Delimiter stripping + character spacing collapse |
@@ -168,12 +169,58 @@ result = guard.scan_output("Here is the prompt: CANARY:7f3a9b2e ...")
 # severity: CRITICAL, reason: canary_token_in_output
 ```
 
+### Enterprise DLP: sanitize_output() (NEW v2.8.1)
+
+Redact-first, block-as-fallback -- the same strategy used by enterprise DLP platforms
+(Zscaler, Symantec DLP, Microsoft Purview). Credentials are replaced with `[REDACTED:type]`
+tags, preserving response utility. Full block only engages as a last resort.
+
+```python
+guard = PromptGuard({"canary_tokens": ["CANARY:7f3a9b2e"]})
+
+# LLM response with leaked credentials
+llm_response = "Your AWS key is AKIAIOSFODNN7EXAMPLE and use Bearer eyJhbG..."
+
+result = guard.sanitize_output(llm_response)
+
+print(result.sanitized_text)
+# "Your AWS key is [REDACTED:aws_key] and use [REDACTED:bearer_token]"
+
+print(result.was_modified)    # True
+print(result.redaction_count) # 2
+print(result.redacted_types)  # ['aws_access_key', 'bearer_token']
+print(result.blocked)         # False (redaction was sufficient)
+print(result.to_dict())       # Full JSON-serializable output
+```
+
+**DLP Decision Flow:**
+
+```
+LLM Response
+     │
+     ▼
+ ┌─────────────────┐
+ │ Step 1: REDACT   │  Replace 17 credential patterns + canary tokens
+ │  credentials      │  with [REDACTED:type] labels
+ └────────┬──────────┘
+          ▼
+ ┌─────────────────┐
+ │ Step 2: RE-SCAN  │  Run scan_output() on redacted text
+ │  post-redaction   │  Catch anything the patterns missed
+ └────────┬──────────┘
+          ▼
+ ┌─────────────────┐
+ │ Step 3: DECIDE   │  HIGH+ on re-scan → BLOCK entire response
+ │                   │  Otherwise → return redacted text (safe)
+ └──────────────────┘
+```
+
 ### Integration
 
 Works with any framework that processes user input:
 
 ```python
-# LangChain
+# LangChain with Enterprise DLP
 from langchain.chains import LLMChain
 from scripts.detect import PromptGuard
 
@@ -188,12 +235,12 @@ def safe_invoke(user_input):
     # Get LLM response
     response = chain.invoke(user_input)
     
-    # Check output (DLP)
-    output_result = guard.scan_output(response)
-    if output_result.action == "block":
-        return "Response blocked: potential data leakage detected."
+    # Enterprise DLP: redact credentials, block as fallback (v2.8.1)
+    dlp = guard.sanitize_output(response)
+    if dlp.blocked:
+        return "Response blocked: contains sensitive data that cannot be safely redacted."
     
-    return response
+    return dlp.sanitized_text  # Safe: credentials replaced with [REDACTED:type]
 ```
 
 ---
