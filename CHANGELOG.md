@@ -2,6 +2,46 @@
 
 All notable changes to Prompt Guard will be documented in this file.
 
+## [3.0.0] - 2026-02-07
+
+### BREAKING: Package Restructure
+
+The monolithic `scripts/detect.py` (2736 lines) has been decomposed into a proper Python package `prompt_guard/` with focused modules:
+
+| Module | Purpose | Lines |
+|--------|---------|-------|
+| `models.py` | Severity, Action, DetectionResult, SanitizeResult | ~70 |
+| `patterns.py` | All 500+ regex pattern definitions (pure data) | ~1200 |
+| `normalizer.py` | HOMOGLYPHS dict + normalize() function | ~200 |
+| `decoder.py` | decode_all() + detect_base64() (Base64/Hex/ROT13/URL/HTML/Unicode) | ~200 |
+| `scanner.py` | scan_text_for_patterns() (reusable pattern matcher) | ~100 |
+| `engine.py` | PromptGuard class (analyze, config, rate_limit, canary, language) | ~400 |
+| `output.py` | scan_output() + sanitize_output() (enterprise DLP) | ~210 |
+| `logging_utils.py` | log_detection(), log_detection_json(), report_to_hivefence() | ~185 |
+| `cli.py` | main() CLI entry point | ~80 |
+
+### Migration Guide
+
+```python
+# Old (deprecated, still works with warnings):
+from scripts.detect import PromptGuard
+
+# New:
+from prompt_guard import PromptGuard
+```
+
+### Backward Compatibility
+
+- `scripts/__init__.py` and `scripts/detect.py` are thin shims that re-export from `prompt_guard` with `DeprecationWarning`
+- All existing imports from `scripts.detect` continue to work
+- The shims will be removed in v4.0
+
+### Other Changes
+
+- `pyproject.toml` entry point updated: `prompt_guard.cli:main`
+- `hivefence.py`, `audit.py`, `analyze_log.py` moved to `prompt_guard/`
+- All 121 tests pass with the new structure
+
 ## [2.8.2] - 2026-02-07
 
 ### Security Fix: Token Splitting Bypass (Security Report Response)
