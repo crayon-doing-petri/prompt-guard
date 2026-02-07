@@ -1,21 +1,24 @@
 """
-Prompt Guard - Prompt injection defense for any LLM agent.
+DEPRECATED: Use 'prompt_guard' instead of 'scripts'.
 
-Usage:
-    from prompt_guard import PromptGuard, Severity, Action
-
-    guard = PromptGuard()
-    result = guard.analyze("user message here")
+This module exists for backward compatibility only and will be removed in v4.0.
 """
 
-__version__ = "2.8.2"
+import warnings
+warnings.warn(
+    "Import from 'prompt_guard' instead of 'scripts'. "
+    "The 'scripts' package is deprecated and will be removed in v4.0.",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
-from scripts.detect import (
+from prompt_guard import (
     PromptGuard,
     Severity,
     Action,
     DetectionResult,
     SanitizeResult,
+    __version__,
 )
 
 __all__ = [

@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://img.shields.io/badge/🚀_version-2.8.1-blue.svg?style=for-the-badge" alt="Version">
+  <img src="https://img.shields.io/badge/🚀_version-3.0.0-blue.svg?style=for-the-badge" alt="Version">
   <img src="https://img.shields.io/badge/📅_updated-2026--02--07-brightgreen.svg?style=for-the-badge" alt="Updated">
   <img src="https://img.shields.io/badge/license-MIT-green.svg?style=for-the-badge" alt="License">
 </p>
@@ -41,7 +41,7 @@ pip install .[dev]
 prompt-guard "ignore previous instructions"
 
 # Or run directly
-python3 scripts/detect.py "ignore previous instructions"
+python3 -m prompt_guard.cli "ignore previous instructions"
 
 # Output: 🚨 CRITICAL | Action: block | Reasons: instruction_override_en
 ```
@@ -147,15 +147,15 @@ Without protection, your agent might comply. **Prompt Guard blocks this.**
 ### CLI
 
 ```bash
-python3 scripts/detect.py "your message"
-python3 scripts/detect.py --json "message"  # JSON output
-python3 scripts/audit.py  # Security audit
+python3 -m prompt_guard.cli "your message"
+python3 -m prompt_guard.cli --json "message"  # JSON output
+python3 -m prompt_guard.audit  # Security audit
 ```
 
 ### Python
 
 ```python
-from scripts.detect import PromptGuard
+from prompt_guard import PromptGuard
 
 guard = PromptGuard()
 
@@ -241,7 +241,7 @@ Works with any framework that processes user input:
 ```python
 # LangChain with Enterprise DLP
 from langchain.chains import LLMChain
-from scripts.detect import PromptGuard
+from prompt_guard import PromptGuard
 
 guard = PromptGuard({"canary_tokens": ["CANARY:abc123"]})
 

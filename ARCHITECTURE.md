@@ -268,31 +268,30 @@ prompt-guard/
 ├── SKILL.md               # Clawdbot skill interface
 ├── config.example.yaml    # Configuration template
 ├── requirements.txt       # Dependencies (pyyaml, optional: langdetect)
-├── scripts/
-│   ├── detect.py          # Core detection engine (~2100 lines)
-│   │   ├── Severity       # Enum for severity levels
-│   │   ├── Action         # Enum for action types
-│   │   ├── SanitizeResult # Result dataclass for sanitize_output() (v2.8.1)
-│   │   ├── DetectionResult# Result dataclass (input + output)
-│   │   ├── PromptGuard    # Main detection class
-│   │   │   ├── analyze()           # Input scanning
-│   │   │   ├── sanitize_output()   # Enterprise DLP (v2.8.1)
-│   │   │   ├── scan_output()       # Output DLP (v2.8.0)
-│   │   │   ├── normalize()         # Homoglyphs + delimiters + spacing
-│   │   │   ├── decode_all()        # Multi-encoding decoder (v2.8.0)
-│   │   │   ├── detect_base64()     # Base64 two-tier detection
-│   │   │   ├── check_canary()      # Canary token detection (v2.8.0)
-│   │   │   ├── detect_language()   # Language detection (v2.8.0)
-│   │   │   ├── log_detection()     # Markdown logging
-│   │   │   └── log_detection_json()# JSONL logging (v2.8.0)
-│   │   └── Pattern defs   # 500+ regex patterns
-│   │
-│   ├── analyze_log.py     # Security log analyzer
+├── pyproject.toml         # Build config, entry points, dependencies
+│
+├── prompt_guard/          # Main package (v3.0)
+│   ├── __init__.py        # Public API + __version__ (re-exports)
+│   ├── models.py          # Severity, Action, DetectionResult, SanitizeResult
+│   ├── patterns.py        # 500+ regex patterns (pure data, ~1200 lines)
+│   ├── normalizer.py      # HOMOGLYPHS dict + normalize() function
+│   ├── decoder.py         # decode_all() + detect_base64() (Base64/Hex/ROT13/URL/HTML/Unicode)
+│   ├── scanner.py         # scan_text_for_patterns() (reusable pattern matcher)
+│   ├── engine.py          # PromptGuard class (analyze, config, rate_limit, canary, language)
+│   ├── output.py          # scan_output() + sanitize_output() (enterprise DLP)
+│   ├── logging_utils.py   # log_detection(), log_detection_json(), report_to_hivefence()
+│   ├── cli.py             # main() CLI entry point
+│   ├── hivefence.py       # HiveFence threat intelligence client
 │   ├── audit.py           # System security audit
-│   └── hivefence.py       # HiveFence threat intelligence client
+│   └── analyze_log.py     # Security log analyzer
+│
+├── scripts/               # Backward-compat shims (deprecated, emit warnings)
+│   ├── __init__.py        # DeprecationWarning + re-import from prompt_guard
+│   └── detect.py          # DeprecationWarning + re-import from prompt_guard
 │
 └── tests/
-    └── test_detect.py     # 76 regression tests (v2.8.0)
+    ├── test_detect.py     # 121 regression tests
+    └── test_detect_cli.py # CLI integration tests
 ```
 
 ---

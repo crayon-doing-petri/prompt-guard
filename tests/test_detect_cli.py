@@ -4,10 +4,8 @@ from pathlib import Path
 
 
 def run_detect(text: str):
-    repo_root = Path(__file__).resolve().parents[1]
-    detect = repo_root / "scripts" / "detect.py"
     p = subprocess.run(
-        ["python3", str(detect), "--json", text],
+        ["python3", "-m", "prompt_guard.cli", "--json", text],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True,
